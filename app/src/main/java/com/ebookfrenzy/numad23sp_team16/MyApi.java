@@ -9,8 +9,10 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,20 +63,28 @@ public class MyApi extends AppCompatActivity {
         //click button to start fetching
         Button searchButton = findViewById(R.id.search_btn);
         searchButton.setOnClickListener(v -> {
-            //update the progress dialog message
+            //update the progress dialog message, using progressBar
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
 
             //get input country name
             String countryToSearch = userInput.getText().toString().trim();
             //send the get request behind the scene
             Call<List<Country>> call = service.getCountries(countryToSearch);
+            progressBar.setProgress(50);
             call.enqueue(new Callback<List<Country>>() {
+
                 @Override
                 public void onResponse(Call<List<Country>> call, Response<List<Country>> response) {
                     if (response.isSuccessful()) {
                         List<Country> countries = response.body();
                         assert countries != null;
+                        //update progress
+                        progressBar.setVisibility(View.GONE);
                         searchResults.addAll(countries);
-                        adapter.notifyDataSetChanged();
+                        //searchResults.size()-1 means the index for the new item added
+                       adapter.notifyItemInserted(searchResults.size()-1);
+                        //adapter.notifyDataSetChanged();
                     } else {
                         // handle error
                         Log.e("code", "Error code: " + response.code());
